@@ -1,0 +1,7 @@
+$alias pr_Marble/Spark  world/spark
+pr_Marble/Fuse          "sounds/Fuse.ogg"
+pr_Marble/Crack1        "sounds/Crack1.ogg"
+pr_Marble/Crack2        "sounds/Crack2.ogg"
+pr_Marble/Crack3        "sounds/Crack3.ogg"
+
+$random pr_Marble/Crack {pr_Marble/Crack1 pr_Marble/Crack2 pr_Marble/Crack3}
