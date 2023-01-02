@@ -74,6 +74,7 @@ class pr_HfReactiveMarble: Actor
     override int DamageMobj(Actor inflictor, Actor source, int damage, Name mod, int flags, double angle)
     {
         int damage = Super.DamageMobj(inflictor, source, damage, mod, flags, angle);
+        if (damage <= 0) { return damage; }
         if (!wasDamaged)
         {
             wasDamaged = true;
