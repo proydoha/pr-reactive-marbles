@@ -1,4 +1,4 @@
-class pr_HfReactiveMarble: Actor
+class pr_ReactiveMarble: Actor
 {
     bool wasDamaged;
     int firstDamage;
@@ -7,9 +7,11 @@ class pr_HfReactiveMarble: Actor
 
     Default
     {
-        Radius 16;
-        Height 48;
+        Radius 8;
+        Height 8;
         Health 2000;
+        Scale 0.5;
+        Tag "Reactive Marble";
         +SOLID;
         +SHOOTABLE;
     }
@@ -17,42 +19,84 @@ class pr_HfReactiveMarble: Actor
     States
     {
         Spawn:
-        COLU A 4 Bright;
-        COLU A 4;
-        TNT1 A 0 A_JumpIfHealthLower(2000, "Deteriorate");
-        Loop;
+            HFRM A 1;
+            goto NotRolling;
 
-        Deteriorate:
-        COLU A 1 Bright;
-        TNT1 A 0 A_ProduceSmoke();
-        TNT1 A 0 A_MakeLeakySparks();
-        TNT1 A 0 A_DamageSelf(firstDamage, firstDamageType);
-        Loop;
+        NotRolling:
+            HFRM A 1 A_ManageMarbleState();
+            TNT1 A 0 A_DeteriorateIfDamaged();
+            loop;
+
+        Rolling:
+            TNT1 A 0 A_FaceMovementDirection();
+            HFRM A 4 A_ManageMarbleState();
+            TNT1 A 0 A_DeteriorateIfDamaged();
+            HFRM B 4 A_ManageMarbleState();
+            TNT1 A 0 A_DeteriorateIfDamaged();
+            HFRM C 4 A_ManageMarbleState();
+            TNT1 A 0 A_DeteriorateIfDamaged();
+            HFRM D 4 A_ManageMarbleState();
+            TNT1 A 0 A_DeteriorateIfDamaged();
+            HFRM E 4 A_ManageMarbleState();
+            TNT1 A 0 A_DeteriorateIfDamaged();
+            HFRM F 4 A_ManageMarbleState();
+            TNT1 A 0 A_DeteriorateIfDamaged();
+            HFRM G 4 A_ManageMarbleState();
+            TNT1 A 0 A_DeteriorateIfDamaged();
+            HFRM H 4 A_ManageMarbleState();
+            TNT1 A 0 A_DeteriorateIfDamaged();
+            loop;
 
         Death:
-        TNT1 A 0 A_SpawnItemEx("pr_MarbleSpark");
-        TNT1 A 0 A_StartSound("pr_Marble/Crack", CHAN_AUTO, CHANF_NOSTOP);
-        COLU A 1 Bright;
-        Stop;
+            TNT1 A 0 A_SpawnItemEx("pr_MarbleSpark");
+            TNT1 A 0 A_StartSound("pr_Marble/Crack", CHAN_AUTO);
+            HFRM A 1 Bright;
+            Stop;
     }
 
-    action void A_ProduceSmoke()
+    state A_ManageMarbleState()
+    {
+        double hSpeed = (self.Vel.x, self.Vel.y).Length();
+        if (hSpeed == 0)
+        {
+            A_SetTics(1);
+        }
+        else
+        {
+            A_SetTics(clamp(1/hSpeed, 1, 8));
+        }
+        bool isRolling = InStateSequence(CurState, ResolveState("Rolling"));
+        bool isNotRolling = InStateSequence(CurState, ResolveState("NotRolling"));
+        if (hSpeed == 0 && isRolling) { return ResolveState("NotRolling"); }
+        if (hSpeed > 0 && isNotRolling) { return ResolveState("Rolling"); }
+        return ResolveState(null);
+    }
+
+    void A_DeteriorateIfDamaged()
+    {
+        if (!wasDamaged) { return; }
+        A_ProduceSmoke();
+        A_MakeLeakySparks();
+        self.A_DamageSelf(firstDamage, firstDamageType);
+    }
+
+    void A_ProduceSmoke()
     {
         self.A_SpawnItemEx("pr_MarbleSmoke", 0, 0, 0, random(-1, 1), random(-1, 1), random(0, 1));
         self.A_StartSound("pr_Marble/Fuse", CHAN_AUTO, CHANF_LOOPING);
     }
 
-    action void A_MakeLeakySparks()
+    void A_MakeLeakySparks()
     {
-        //Three times as likely to crackle
-        int probabilityModifier = 3;
+        //Four times as likely to crackle
+        int probabilityModifier = 4;
         int randomValue = random(0, 255);
-        pr_HfReactiveMarble thisMarble = pr_HfReactiveMarble(self);
-        if (randomValue < thisMarble.firstLeakyness * probabilityModifier)
-        {
-            self.A_SpawnItemEx("pr_MarbleSpark", 0, 0, 0, FRandom(-0.5, 0.5), FRandom(-0.5, 0.5), FRandom(0, 0.5));
-            self.A_StartSound("pr_Marble/Crack", CHAN_AUTO, CHANF_NOSTOP);
-        }
+        if (randomValue > self.firstLeakyness * probabilityModifier) { return; }
+        if (pos.z != curSector.floorplane.ZatPoint((pos.x, pos.y))) { return; }
+
+        self.A_SpawnItemEx("pr_MarbleSpark", 0, 0, 0, FRandom(-0.5, 0.5), FRandom(-0.5, 0.5), FRandom(0, 0.5));
+        self.A_StartSound("pr_Marble/Crack", CHAN_AUTO);
+        self.Vel = (random(-3, 3), random(-3, 3), random(3, 10));
     }
 
     override void PostBeginPlay()
@@ -86,9 +130,11 @@ class pr_HfReactiveMarble: Actor
 
     void ApplyHurtFloorDamage(Sector s)
     {
+        bool isOnFloor = (pos.z == curSector.floorplane.ZatPoint((pos.x, pos.y)));
         if (s.damageamount == 0) { return; }
         if (s.damageinterval == 0) { return; }
-        if (level.Time % s.damageinterval == 0)
+        if (level.Time % s.damageinterval == 0
+            && (waterlevel > 0 || (waterlevel == 0 && isOnFloor)))
         {
             if (!wasDamaged)
             {
@@ -137,10 +183,12 @@ class pr_HfReactiveMarble: Actor
 
     void ApplyTerrainDamage(Sector s)
     {
+        bool isOnFloor = (pos.z == curSector.floorplane.ZatPoint((pos.x, pos.y)));
         TerrainDef floorTerrain = s.GetFloorTerrain(s.floor);
         if (floorTerrain.TerrainName == "SOLID") { return; }
         if (floorTerrain.DamageAmount == 0) { return; }
-        if (level.Time % (floorTerrain.DamageTimeMask + 1) == 0)
+        if (level.Time % (floorTerrain.DamageTimeMask + 1) == 0
+            && (waterlevel > 0 || (waterlevel == 0 && isOnFloor)))
         {
             //I don't think terrain can be leaky ( ? )
             DamageMobj(self, self, floorTerrain.DamageAmount, floorTerrain.DamageMOD, 0, 0);
