@@ -56,7 +56,7 @@ class pr_ReactiveMarble: Actor
 
     state A_ManageMarbleState()
     {
-        double hSpeed = (self.Vel.x, self.Vel.y).Length();
+        double hSpeed = (Vel.x, Vel.y).Length();
         if (hSpeed == 0)
         {
             A_SetTics(1);
@@ -77,13 +77,13 @@ class pr_ReactiveMarble: Actor
         if (!wasDamaged) { return; }
         A_ProduceSmoke();
         A_MakeLeakySparks();
-        self.A_DamageSelf(firstDamage, firstDamageType);
+        A_DamageSelf(firstDamage, firstDamageType);
     }
 
     void A_ProduceSmoke()
     {
-        self.A_SpawnItemEx("pr_MarbleSmoke", 0, 0, 0, random(-1, 1), random(-1, 1), random(0, 1));
-        self.A_StartSound("pr_Marble/Fuse", CHAN_AUTO, CHANF_LOOPING);
+        A_SpawnItemEx("pr_MarbleSmoke", 0, 0, 0, random(-1, 1), random(-1, 1), random(0, 1));
+        A_StartSound("pr_Marble/Fuse", CHAN_AUTO, CHANF_LOOPING);
     }
 
     void A_MakeLeakySparks()
@@ -91,12 +91,12 @@ class pr_ReactiveMarble: Actor
         //Four times as likely to crackle
         int probabilityModifier = 4;
         int randomValue = random(0, 255);
-        if (randomValue > self.firstLeakyness * probabilityModifier) { return; }
+        if (randomValue > firstLeakyness * probabilityModifier) { return; }
         if (pos.z != curSector.floorplane.ZatPoint((pos.x, pos.y))) { return; }
 
-        self.A_SpawnItemEx("pr_MarbleSpark", 0, 0, 0, FRandom(-0.5, 0.5), FRandom(-0.5, 0.5), FRandom(0, 0.5));
-        self.A_StartSound("pr_Marble/Crack", CHAN_AUTO);
-        self.Vel = (random(-3, 3), random(-3, 3), random(3, 10));
+        A_SpawnItemEx("pr_MarbleSpark", 0, 0, 0, FRandom(-0.5, 0.5), FRandom(-0.5, 0.5), FRandom(0, 0.5));
+        A_StartSound("pr_Marble/Crack", CHAN_AUTO);
+        Vel = (random(-3, 3), random(-3, 3), random(3, 10));
     }
 
     override void PostBeginPlay()
@@ -110,9 +110,9 @@ class pr_ReactiveMarble: Actor
     override void Tick()
 	{
         Super.Tick();
-        ApplyHurtFloorDamage(self.CurSector);
-        Apply3DHurtFloorDamage(self.CurSector);
-        ApplyTerrainDamage(self.CurSector);
+        ApplyHurtFloorDamage(CurSector);
+        Apply3DHurtFloorDamage(CurSector);
+        ApplyTerrainDamage(CurSector);
     }
 
     override int DamageMobj(Actor inflictor, Actor source, int damage, Name mod, int flags, double angle)
@@ -168,12 +168,12 @@ class pr_ReactiveMarble: Actor
         for (int i = 0; i < F3DFloors.Size(); i++)
         {
             Sector modelSector = F3DFloors[i].model;
-            vector2 actorPosition = (self.pos.x, self.pos.y);
+            vector2 actorPosition = (pos.x, pos.y);
             // Can't assign those to variable for some reason ( ? )
             //double 3dFloorTop = modelSector.ceilingplane.ZatPoint(actorPosition);
             //double 3dFloorBottom = modelSector.floorplane.ZatPoint(actorPosition);
-            if (modelSector.floorplane.ZatPoint(actorPosition) <= (self.pos.z + self.height)
-                && modelSector.ceilingplane.ZatPoint(actorPosition) >= self.pos.z)
+            if (modelSector.floorplane.ZatPoint(actorPosition) <= (pos.z + height)
+                && modelSector.ceilingplane.ZatPoint(actorPosition) >= pos.z)
             {
                 ApplyHurtFloorDamage(modelSector);
             }
