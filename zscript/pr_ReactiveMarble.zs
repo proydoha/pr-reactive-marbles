@@ -12,8 +12,8 @@ class pr_ReactiveMarble: Actor
         Health 2000;
         Scale 0.5;
         Tag "Reactive Marble";
-        +SOLID;
         +SHOOTABLE;
+        +NOBLOOD;
     }
 
     States
@@ -90,7 +90,7 @@ class pr_ReactiveMarble: Actor
     {
         //Four times as likely to crackle
         int probabilityModifier = 4;
-        int randomValue = random(0, 255);
+        int randomValue = random(1, 255);
         if (randomValue > firstLeakyness * probabilityModifier) { return; }
         if (pos.z != curSector.floorplane.ZatPoint((pos.x, pos.y))) { return; }
 
