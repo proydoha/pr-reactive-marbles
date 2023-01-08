@@ -1,4 +1,4 @@
-class pr_MarbleInventory : CustomInventory
+class pr_ReactiveMarbleInventory : CustomInventory
 {
     Default
     {

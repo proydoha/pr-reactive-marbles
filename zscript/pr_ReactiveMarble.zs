@@ -1,9 +1,11 @@
-class pr_ReactiveMarble: Actor
+class pr_ReactiveMarble: CustomInventory
 {
     bool wasDamaged;
     int firstDamage;
     Name firstDamageType;
     int firstLeakyness;
+
+    int justTossedTimer;
 
     Default
     {
@@ -26,6 +28,10 @@ class pr_ReactiveMarble: Actor
         +FLOORCLIP;
         +BOUNCEONACTORS;
         -BOUNCEAUTOOFF;
+        -COUNTITEM;
+
+        Inventory.PickupMessage "Picked up reactive marble";
+        Inventory.PickupSound "misc/p_pkup";
     }
 
     States
@@ -59,6 +65,9 @@ class pr_ReactiveMarble: Actor
             TNT1 A 0 A_DeteriorateIfDamaged();
             loop;
 
+        Pickup:
+            TNT1 A 0 A_GiveInventory ("pr_ReactiveMarbleInventory", 1);
+
         Death:
             TNT1 A 0 A_SpawnItemEx("pr_MarbleSpark");
             TNT1 A 0 A_StartSound("pr_Marble/Crack", CHAN_AUTO);
@@ -66,7 +75,7 @@ class pr_ReactiveMarble: Actor
             Stop;
     }
 
-    state A_ManageMarbleState()
+    action state A_ManageMarbleState()
     {
         double minimalHorizontalSpeed = 0.00001;
         double minimalSpeed = 0.5;
@@ -100,26 +109,28 @@ class pr_ReactiveMarble: Actor
         return ResolveState(null);
     }
 
-    void A_DeteriorateIfDamaged()
+    action void A_DeteriorateIfDamaged()
     {
-        if (!wasDamaged) { return; }
+        let thisActor = pr_ReactiveMarble(self);
+        if (!thisActor.wasDamaged) { return; }
         A_ProduceSmoke();
         A_MakeLeakySparks();
-        A_DamageSelf(firstDamage, firstDamageType);
+        A_DamageSelf(thisActor.firstDamage, thisActor.firstDamageType);
     }
 
-    void A_ProduceSmoke()
+    action void A_ProduceSmoke()
     {
         A_SpawnItemEx("pr_MarbleSmoke", 0, 0, 0, random(-1, 1), random(-1, 1), random(0, 1));
         A_StartSound("pr_Marble/Fuse", CHAN_AUTO, CHANF_LOOPING);
     }
 
-    void A_MakeLeakySparks()
+    action void A_MakeLeakySparks()
     {
+        let thisActor = pr_ReactiveMarble(self);
         //Four times as likely to crackle
         int probabilityModifier = 4;
         int randomValue = random(1, 255);
-        if (randomValue > firstLeakyness * probabilityModifier) { return; }
+        if (randomValue > thisActor.firstLeakyness * probabilityModifier) { return; }
         if (pos.z != curSector.floorplane.ZatPoint((pos.x, pos.y))) { return; }
 
         A_SpawnItemEx("pr_MarbleSpark", 0, 0, 0, FRandom(-0.5, 0.5), FRandom(-0.5, 0.5), FRandom(0, 0.5));
@@ -127,17 +138,20 @@ class pr_ReactiveMarble: Actor
         Vel = (random(-3, 3), random(-3, 3), random(3, 10));
     }
 
-    override void PostBeginPlay()
+    override void BeginPlay()
     {
+        Super.BeginPlay();
         wasDamaged = false;
         firstDamage = 1;
         firstLeakyness = 0;
         firstDamageType = "None";
+        justTossedTimer = 35;
     }
 
     override void Tick()
 	{
         Super.Tick();
+        if (justTossedTimer > 0) { justTossedTimer--; }
         ApplyHurtFloorDamage(CurSector);
         Apply3DHurtFloorDamage(CurSector);
         ApplyTerrainDamage(CurSector);
@@ -154,6 +168,13 @@ class pr_ReactiveMarble: Actor
             firstDamageType = mod;
         }
         return damage;
+    }
+
+    override bool TryPickup (in out Actor toucher)
+    {
+        if (wasDamaged) { return false; }
+        if (justTossedTimer > 0) { return false; }
+        return Super.TryPickup(toucher);
     }
 
     void ApplyHurtFloorDamage(Sector s)
