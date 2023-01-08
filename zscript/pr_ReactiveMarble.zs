@@ -9,11 +9,23 @@ class pr_ReactiveMarble: Actor
     {
         Radius 8;
         Height 8;
+
         Health 2000;
         Scale 0.5;
+        Mass 25;
+        Speed 10;
+
+        BounceType "Hexen";
+        MaxStepHeight 4;
+        BounceFactor 0.5;
+
         Tag "Reactive Marble";
         +SHOOTABLE;
+        +MISSILE;
         +NOBLOOD;
+        +FLOORCLIP;
+        +BOUNCEONACTORS;
+        -BOUNCEAUTOOFF;
     }
 
     States
@@ -31,19 +43,19 @@ class pr_ReactiveMarble: Actor
             TNT1 A 0 A_FaceMovementDirection();
             HFRM A 4 A_ManageMarbleState();
             TNT1 A 0 A_DeteriorateIfDamaged();
-            HFRM B 4 A_ManageMarbleState();
-            TNT1 A 0 A_DeteriorateIfDamaged();
-            HFRM C 4 A_ManageMarbleState();
-            TNT1 A 0 A_DeteriorateIfDamaged();
-            HFRM D 4 A_ManageMarbleState();
-            TNT1 A 0 A_DeteriorateIfDamaged();
-            HFRM E 4 A_ManageMarbleState();
-            TNT1 A 0 A_DeteriorateIfDamaged();
-            HFRM F 4 A_ManageMarbleState();
+            HFRM H 4 A_ManageMarbleState();
             TNT1 A 0 A_DeteriorateIfDamaged();
             HFRM G 4 A_ManageMarbleState();
             TNT1 A 0 A_DeteriorateIfDamaged();
-            HFRM H 4 A_ManageMarbleState();
+            HFRM F 4 A_ManageMarbleState();
+            TNT1 A 0 A_DeteriorateIfDamaged();
+            HFRM E 4 A_ManageMarbleState();
+            TNT1 A 0 A_DeteriorateIfDamaged();
+            HFRM D 4 A_ManageMarbleState();
+            TNT1 A 0 A_DeteriorateIfDamaged();
+            HFRM C 4 A_ManageMarbleState();
+            TNT1 A 0 A_DeteriorateIfDamaged();
+            HFRM B 4 A_ManageMarbleState();
             TNT1 A 0 A_DeteriorateIfDamaged();
             loop;
 
@@ -56,8 +68,11 @@ class pr_ReactiveMarble: Actor
 
     state A_ManageMarbleState()
     {
+        double minimalHorizontalSpeed = 0.00001;
+        double minimalSpeed = 0.5;
+        double fakeFriction = 0.99;
         double hSpeed = (Vel.x, Vel.y).Length();
-        if (hSpeed == 0)
+        if (hSpeed <= minimalHorizontalSpeed)
         {
             A_SetTics(1);
         }
@@ -67,8 +82,21 @@ class pr_ReactiveMarble: Actor
         }
         bool isRolling = InStateSequence(CurState, ResolveState("Rolling"));
         bool isNotRolling = InStateSequence(CurState, ResolveState("NotRolling"));
-        if (hSpeed == 0 && isRolling) { return ResolveState("NotRolling"); }
-        if (hSpeed > 0 && isNotRolling) { return ResolveState("Rolling"); }
+        if (vel.Length() < minimalSpeed)
+        {
+            bNOGRAVITY = true;
+            Vel = (0, 0, 0);
+            vector3 currentPos = (Pos.x, Pos.y, Pos.z);
+            setZ(curSector.floorplane.ZatPoint((pos.x, pos.y)));
+            if (!TestMobjLocation() || !CheckMove((pos.x, pos.y))) { setOrigin(currentPos, false); } else { setOrigin(Pos, false); }
+        }
+        if (hSpeed > minimalHorizontalSpeed && Pos.z == curSector.floorplane.ZatPoint((pos.x, pos.y)))
+        {
+            Vel *= fakeFriction;
+        }
+        if (Vel.Length() >= minimalSpeed) { bNOGRAVITY = false; }
+        if (hSpeed < minimalHorizontalSpeed && isRolling) { return ResolveState("NotRolling"); }
+        if (hSpeed >= minimalHorizontalSpeed && isNotRolling) { return ResolveState("Rolling"); }
         return ResolveState(null);
     }
 
