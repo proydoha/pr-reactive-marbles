@@ -22,6 +22,11 @@ class pr_ReactiveMarble: CustomInventory
         BounceFactor 0.5;
 
         Tag "Reactive Marble";
+
+        Inventory.PickupMessage "Picked up reactive marble";
+        Inventory.Amount 1;
+        Inventory.MaxAmount 999;
+
         +SHOOTABLE;
         +MISSILE;
         +NOBLOOD;
@@ -29,9 +34,7 @@ class pr_ReactiveMarble: CustomInventory
         +BOUNCEONACTORS;
         -BOUNCEAUTOOFF;
         -COUNTITEM;
-
-        Inventory.PickupMessage "Picked up reactive marble";
-        Inventory.PickupSound "misc/p_pkup";
+        +INVENTORY.INVBAR;
     }
 
     States
@@ -65,8 +68,9 @@ class pr_ReactiveMarble: CustomInventory
             TNT1 A 0 A_DeteriorateIfDamaged();
             loop;
 
-        Pickup:
-            TNT1 A 0 A_GiveInventory ("pr_ReactiveMarbleInventory", 1);
+        Use:
+            PSBG A 1 A_FireProjectile("pr_ReactiveMarble", 0, 0, 0, 12);
+            stop;
 
         Death:
             TNT1 A 0 A_SpawnItemEx("pr_MarbleSpark");
