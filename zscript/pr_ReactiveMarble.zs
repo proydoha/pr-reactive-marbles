@@ -141,7 +141,12 @@ class pr_ReactiveMarble: CustomInventory
 
     action void A_ProduceSmoke()
     {
-        A_SpawnItemEx("pr_MarbleSmoke", 0, 0, 0, random(-1, 1), random(-1, 1), random(0, 1));
+        let thisActor = pr_ReactiveMarble(self);
+        pr_MarbleSmoke smokePuff = pr_MarbleSmoke(Spawn("pr_MarbleSmoke", pos, ALLOW_REPLACE));
+        smokePuff.Vel = (random(-1, 1), random(-1, 1), random(0, 1));
+        if (thisActor.firstDamageType == "Slime") { smokePuff.A_SetTranslation("GreenMarbleSmoke"); }
+        if (thisActor.firstDamageType == "Fire") { smokePuff.A_SetTranslation("RedMarbleSmoke"); }
+        smokePuff.SetShade(Color(0, random(0,50), 0, 0));
         A_StartSound("pr_Marble/Fuse", CHAN_AUTO, CHANF_LOOPING);
     }
 

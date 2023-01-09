@@ -1,0 +1,2 @@
+GreenMarbleSmoke = "0:255=#[0,125,0]"
+RedMarbleSmoke = "0:255=#[125,0,0]"
