@@ -7,6 +7,10 @@ class pr_ReactiveMarble: CustomInventory
 
     int justTossedTimer;
 
+    double minimalSpeed;
+    double minimalHorizontalSpeed;
+    double friction;
+
     Default
     {
         Radius 8;
@@ -81,11 +85,9 @@ class pr_ReactiveMarble: CustomInventory
 
     action state A_ManageMarbleState()
     {
-        double minimalHorizontalSpeed = 0.00001;
-        double minimalSpeed = 0.5;
-        double fakeFriction = 0.99;
+        let thisActor = pr_ReactiveMarble(self);
         double hSpeed = (Vel.x, Vel.y).Length();
-        if (hSpeed <= minimalHorizontalSpeed)
+        if (hSpeed <= thisActor.minimalHorizontalSpeed)
         {
             A_SetTics(1);
         }
@@ -95,6 +97,18 @@ class pr_ReactiveMarble: CustomInventory
         }
         bool isRolling = InStateSequence(CurState, ResolveState("Rolling"));
         bool isNotRolling = InStateSequence(CurState, ResolveState("NotRolling"));
+
+        A_ManageSpeedAndNoGravityFlag();
+        A_ApplyFrictionWhenOnFloor(friction);
+
+        if (hSpeed < thisActor.minimalHorizontalSpeed && isRolling) { return ResolveState("NotRolling"); }
+        if (hSpeed >= thisActor.minimalHorizontalSpeed && isNotRolling) { return ResolveState("Rolling"); }
+        return ResolveState(null);
+    }
+
+    action void A_ManageSpeedAndNoGravityFlag()
+    {
+        double minimalSpeed = 0.5;
         if (vel.Length() < minimalSpeed)
         {
             bNOGRAVITY = true;
@@ -103,14 +117,17 @@ class pr_ReactiveMarble: CustomInventory
             setZ(curSector.floorplane.ZatPoint((pos.x, pos.y)));
             if (!TestMobjLocation() || !CheckMove((pos.x, pos.y))) { setOrigin(currentPos, false); } else { setOrigin(Pos, false); }
         }
-        if (hSpeed > minimalHorizontalSpeed && Pos.z == curSector.floorplane.ZatPoint((pos.x, pos.y)))
-        {
-            Vel *= fakeFriction;
-        }
         if (Vel.Length() >= minimalSpeed) { bNOGRAVITY = false; }
-        if (hSpeed < minimalHorizontalSpeed && isRolling) { return ResolveState("NotRolling"); }
-        if (hSpeed >= minimalHorizontalSpeed && isNotRolling) { return ResolveState("Rolling"); }
-        return ResolveState(null);
+    }
+
+    action void A_ApplyFrictionWhenOnFloor(double friction)
+    {
+        let thisActor = pr_ReactiveMarble(self);
+        double hSpeed = (Vel.x, Vel.y).Length();
+        if (hSpeed > thisActor.minimalHorizontalSpeed && Pos.z == curSector.floorplane.ZatPoint((pos.x, pos.y)))
+        {
+            Vel *= thisActor.friction;
+        }
     }
 
     action void A_DeteriorateIfDamaged()
@@ -150,6 +167,9 @@ class pr_ReactiveMarble: CustomInventory
         firstLeakyness = 0;
         firstDamageType = "None";
         justTossedTimer = 35;
+        minimalHorizontalSpeed = 0.00001;
+        friction = 0.99;
+        minimalSpeed = 0.5;
     }
 
     override void Tick()
