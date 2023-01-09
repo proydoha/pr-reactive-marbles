@@ -13,7 +13,7 @@ class pr_ReactiveMarble: CustomInventory
 
     Default
     {
-        Radius 8;
+        Radius 4;
         Height 8;
 
         Health 2000;
@@ -73,7 +73,7 @@ class pr_ReactiveMarble: CustomInventory
             loop;
 
         Use:
-            PSBG A 1 A_FireProjectile("pr_ReactiveMarble", 0, 0, 0, 12);
+            PSBG A 1 A_TossAMarble();
             stop;
 
         Death:
@@ -159,6 +159,13 @@ class pr_ReactiveMarble: CustomInventory
         Vel = (random(-3, 3), random(-3, 3), random(3, 10));
     }
 
+    action void A_TossAMarble()
+    {
+        Actor a = A_FireProjectile("pr_ReactiveMarble", 0, 0, 0, 12);
+        pr_ReactiveMarble marble = pr_ReactiveMarble(a);
+        marble.justTossedTimer = 35;
+    }
+
     override void BeginPlay()
     {
         Super.BeginPlay();
@@ -166,7 +173,7 @@ class pr_ReactiveMarble: CustomInventory
         firstDamage = 1;
         firstLeakyness = 0;
         firstDamageType = "None";
-        justTossedTimer = 35;
+        justTossedTimer = 0;
         minimalHorizontalSpeed = 0.00001;
         friction = 0.99;
         minimalSpeed = 0.5;
@@ -194,7 +201,7 @@ class pr_ReactiveMarble: CustomInventory
         return damage;
     }
 
-    override bool TryPickup (in out Actor toucher)
+    override bool TryPickup(in out Actor toucher)
     {
         if (wasDamaged) { return false; }
         if (justTossedTimer > 0) { return false; }
