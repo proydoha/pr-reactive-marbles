@@ -77,7 +77,7 @@ class pr_ReactiveMarble: CustomInventory
             stop;
 
         Death:
-            TNT1 A 0 A_SpawnItemEx("pr_MarbleSpark");
+            TNT1 A 0 A_SpawnItemEx("pr_ReactiveMarbleSpark");
             TNT1 A 0 A_StartSound("pr_Marble/Crack", CHAN_AUTO);
             HFRM A 1 Bright;
             Stop;
@@ -142,7 +142,7 @@ class pr_ReactiveMarble: CustomInventory
     action void A_ProduceSmoke()
     {
         let thisActor = pr_ReactiveMarble(self);
-        pr_MarbleSmoke smokePuff = pr_MarbleSmoke(Spawn("pr_MarbleSmoke", pos, ALLOW_REPLACE));
+        pr_MarbleSmoke smokePuff = pr_MarbleSmoke(Spawn("pr_ReactiveMarbleSmoke", pos, ALLOW_REPLACE));
         smokePuff.Vel = (random(-1, 1), random(-1, 1), random(0, 1));
         if (thisActor.firstDamageType == "Slime") { smokePuff.A_SetTranslation("GreenMarbleSmoke"); }
         if (thisActor.firstDamageType == "Fire") { smokePuff.A_SetTranslation("RedMarbleSmoke"); }
@@ -159,7 +159,7 @@ class pr_ReactiveMarble: CustomInventory
         if (randomValue > thisActor.firstLeakyness * probabilityModifier) { return; }
         if (pos.z != curSector.floorplane.ZatPoint((pos.x, pos.y))) { return; }
 
-        A_SpawnItemEx("pr_MarbleSpark", 0, 0, 0, FRandom(-0.5, 0.5), FRandom(-0.5, 0.5), FRandom(0, 0.5));
+        A_SpawnItemEx("pr_ReactiveMarbleSpark", 0, 0, 0, FRandom(-0.5, 0.5), FRandom(-0.5, 0.5), FRandom(0, 0.5));
         A_StartSound("pr_Marble/Crack", CHAN_AUTO);
         Vel = (random(-3, 3), random(-3, 3), random(3, 10));
     }

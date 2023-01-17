@@ -1,4 +1,4 @@
-class pr_MarbleSpark: Actor
+class pr_ReactiveMarbleSpark: Actor
 {
     Default
     {

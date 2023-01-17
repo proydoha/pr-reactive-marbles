@@ -1,4 +1,4 @@
-class pr_MarbleSmoke: RocketSmokeTrail
+class pr_ReactiveMarbleSmoke: RocketSmokeTrail
 {
     Default
     {
