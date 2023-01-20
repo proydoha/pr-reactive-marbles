@@ -1,0 +1,10 @@
+[en default]
+
+PR_RM_OPTIONS = "Reactive Marbles Options";
+PR_RM_DO_NOT_USE_INVENTORY = "Do not use inventory items";
+PR_RM_DO_NOT_USE_INVENTORY_TIP = "Summon infinite amount of marbles via netevent";
+PR_RM_DO_NOT_USE_INVENTORY_TIP2 = "Instead of using limited amount of inventory items";
+PR_RM_START_AMOUNT = "Amount";
+PR_RM_START_AMOUNT_TIP = "Sets your inventory to this amount of marbles at the beginning of each map";
+PR_RM_TOSS_NETEVENT_KEY = "Toss a marble (NetEvent)";
+PR_RM_TOSS_INVENTORY_KEY = "Toss a marble (Inventory)";

@@ -1,0 +1,2 @@
+server bool pr_rm_noinventory = false;
+server int pr_rm_startmapamount = 20;

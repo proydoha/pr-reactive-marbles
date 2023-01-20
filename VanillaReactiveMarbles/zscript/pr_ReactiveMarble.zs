@@ -1,6 +1,7 @@
 class pr_ReactiveMarble: CustomInventory
 {
     bool wasDamaged;
+    bool destroyOnPickup;
     int firstDamage;
     Name firstDamageType;
     int firstLeakyness;
@@ -30,6 +31,7 @@ class pr_ReactiveMarble: CustomInventory
         Inventory.PickupMessage "Picked up reactive marble";
         Inventory.Amount 1;
         Inventory.MaxAmount 999;
+        Inventory.InterHubAmount 999;
 
         +SHOOTABLE;
         +MISSILE;
@@ -166,9 +168,8 @@ class pr_ReactiveMarble: CustomInventory
 
     action void A_TossAMarble()
     {
-        Actor a = A_FireProjectile("pr_ReactiveMarble", 0, 0, 0, 12);
-        pr_ReactiveMarble marble = pr_ReactiveMarble(a);
-        marble.justTossedTimer = 35;
+        let playerActor = PlayerPawn(self);
+        pr_ReactiveMarbleTosser.TossAMarble(playerActor, false);
     }
 
     override void BeginPlay()
@@ -210,7 +211,23 @@ class pr_ReactiveMarble: CustomInventory
     {
         if (wasDamaged) { return false; }
         if (justTossedTimer > 0) { return false; }
+        if (destroyOnPickup)
+        {
+            //Pretend to pickup an item
+            bool localview = toucher.CheckLocalView();
+            PrintPickupMessage(localview, PickupMessage());
+            PlayPickupSound(toucher);
+            GoAwayAndDie();
+            return false;
+        }
         return Super.TryPickup(toucher);
+    }
+
+    override bool CanCollideWith(Actor other, bool passive)
+    {
+        if (!other) { return false; }
+        if (other.Player && justTossedTimer > 0) { return false; }
+        return Super.CanCollideWith(other, passive);
     }
 
     void ApplyHurtFloorDamage(Sector s)

@@ -1,0 +1,7 @@
+AddKeySection "Reactive Marbles Keys" pr_ReactiveMarbles
+
+AddMenuKey "$PR_RM_TOSS_NETEVENT_KEY" pr_rm_toss_netevent
+AddMenuKey "$PR_RM_TOSS_INVENTORY_KEY" pr_rm_toss_inventory
+
+alias pr_rm_toss_netevent "netevent pr_ReactiveMarbleToss"
+alias pr_rm_toss_inventory "use pr_ReactiveMarble"

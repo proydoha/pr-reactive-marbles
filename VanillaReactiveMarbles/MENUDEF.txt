@@ -1,0 +1,18 @@
+AddOptionMenu "OptionsMenu"
+{
+    Submenu "$PR_RM_OPTIONS", "pr_rm_options_menu"
+}
+
+OptionMenu "pr_rm_options_menu"
+{
+    Title "$PR_RM_OPTIONS"
+    Option "$PR_RM_DO_NOT_USE_INVENTORY", "pr_rm_noinventory", "OnOff"
+    StaticText "$PR_RM_DO_NOT_USE_INVENTORY_TIP", "DarkGray"
+    StaticText "$PR_RM_DO_NOT_USE_INVENTORY_TIP2", "DarkGray"
+    StaticText ""
+    Slider "$PR_RM_START_AMOUNT", "pr_rm_startmapamount", 0, 999, 1, 0
+    StaticText "$PR_RM_START_AMOUNT_TIP", "DarkGray"
+    StaticText ""
+    Control "$PR_RM_TOSS_NETEVENT_KEY", pr_rm_toss_netevent
+    Control "$PR_RM_TOSS_INVENTORY_KEY", pr_rm_toss_inventory
+}
