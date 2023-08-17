@@ -38,6 +38,7 @@ class pr_ReactiveMarble: CustomInventory
         +NOBLOOD;
         +FLOORCLIP;
         +BOUNCEONACTORS;
+        +CANBOUNCEWATER;
         -BOUNCEAUTOOFF;
         -COUNTITEM;
         +INVENTORY.INVBAR;
